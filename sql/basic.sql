@@ -126,3 +126,166 @@ GROUP BY
 HAVING
 	count(*) >= 1000
 ;
+
+70 商品を価格が低い順に出力
+SELECT * FROM products ORDER BY price;
+
+71 商品一覧を価格が高い順に出力する。価格が同じ時は登録順で並び替える。
+SELECT
+    *
+FROM
+    products
+ORDER BY
+	price desc,
+    id
+;
+
+72 演習：ユーザを生年月日が古い順に出力。同じ場合は都道府県IDの昇順で出力。
+SELECT
+    *
+FROM
+    users
+ORDER BY
+	birthday,
+    prefecture_id
+;
+
+78 商品価格の税込価格を出力。少数第１位で四捨五入。
+SELECT
+    id,
+    name,
+    round(price * 1.1, 0)
+FROM
+    products
+;
+
+80 演習：宛名「名字＋さん」とメールアドレスを女性だけ出力
+SELECT
+    concat(last_name, 'さん'),
+    email
+FROM
+    users
+WHERE
+	gender = 2
+;
+
+81 ユーザID、名字、名前、都道府県名を出力
+SELECT
+	u.id,
+    u.last_name,
+    u.first_name,
+    p.name
+FROM
+    users as u
+INNER JOIN
+	prefectures as p
+    on u.prefecture_id = p.id
+;
+
+82 ユーザID、名字、名前、都道府県名を女性のみ出力
+SELECT
+	u.id,
+    u.last_name,
+    u.first_name,
+    p.name
+FROM
+    users as u
+INNER JOIN
+	prefectures as p
+    on u.prefecture_id = p.id
+WHERE
+	u.gender = 2;
+;
+
+83 演習：2017年1月に東京都に住むユーザの情報一覧を出力（注文ID、注文日時、注文金額合計、ユーザID、名字、名前）
+SELECT
+	o.id order_id,
+    o.order_time order_time,
+    o.amount amount,
+	u.id user_id,
+    u.last_name last_name,
+    u.first_name first_name
+FROM
+    orders AS o
+INNER JOIN
+	users AS u
+    on o.user_id = u.id
+WHERE
+	order_time BETWEEN '2017-01-01-00:00:00'
+    AND '2017-02-01-00:00:00:'
+	AND u.prefecture_id = 13
+ORDER BY order_id
+;
+
+94 すべての商品の販売個数一覧を出力
+SELECT
+	p.id,
+    p.name,
+	SUM(od.product_qty)
+FROM
+    products AS p
+LEFT JOIN
+	order_details AS od
+    ON p.id = od.product_id
+GROUP BY
+	p.id
+;
+
+95 注文詳細情報、商品情報、名字、名前を含む注文一覧を出力
+SELECT
+	o.id order_id,
+    o.user_id,
+    u.last_name,
+    u.first_name,
+    o.amount,
+    o.order_time,
+    p.name product_name,
+    od.product_qty qty,
+    p.price product_price
+FROM
+    orders o
+INNER JOIN
+	order_details od
+    ON o.id = od.order_id
+INNER JOIN
+	products p
+    ON od.product_id = p.id
+INNER JOIN
+	users u
+    ON o.user_id = u.id
+;
+
+96 IDが３の商品カテゴリ名を出力
+SELECT
+	p.id product_id,
+    p.name product_name,
+    c.name category_name
+FROM
+	 products p
+INNER JOIN
+	products_categories pc
+    ON p.id = pc.product_id
+INNER JOIN
+	categories c
+    ON pc.category_id = c.id
+WHERE
+	p.id = 3
+;
+
+97 ユーザとアドミンユーザを足し合わせた一覧を出力（email,性,名,性別）
+SELECT
+	email,
+    last_name,
+    first_name,
+    gender
+FROM
+	 users
+UNION
+SELECT
+	email,
+    last_name,
+    first_name,
+    gender
+FROM
+	 admin_users
+;
