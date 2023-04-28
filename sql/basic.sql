@@ -289,3 +289,203 @@ SELECT
 FROM
 	 admin_users
 ;
+
+-- 100 都道府県別のユーザ数を出力
+create view prefecture_user_counts(name, count)
+as
+SELECT
+	p.name,
+    count(*) count
+FROM
+	users u
+INNER JOIN
+	prefectures p
+    ON u.prefecture_id = p.id
+GROUP BY
+	u.prefecture_id
+;
+
+SELECT
+	name,
+    count
+FROM
+	prefecture_user_counts;
+
+-- 104 2017年12月に商品を購入していないユーザを出力
+SELECT
+	id,
+    last_name,
+    email
+FROM
+	users
+WHERE id NOT IN(
+    SELECT
+		user_id
+	FROM
+		orders
+	WHERE
+		order_time BETWEEN '2017-12-01 00:00:00'
+		AND '2018-01-01 00:00:00')
+;
+
+-- 105 演習:2017年12月に商品を購入したユーザを出力
+SELECT
+	id,
+    last_name,
+    email
+FROM
+	users
+WHERE id IN (
+    SELECT
+		user_id
+	FROM
+		orders
+	WHERE
+		order_time BETWEEN '2017-12-01 00:00:00'
+		AND '2018-01-01 00:00:00')
+;
+
+-- 107 応用:全商品の平均単価より、単価が高い商品を単価が高い順に出力。同額の場合はid順。
+SELECT
+	*
+FROM
+	products
+WHERE 
+	price > 
+    (
+		SELECT
+			avg(price)
+		FROM
+			products
+	)
+ORDER BY
+	price desc,
+    id
+;
+
+-- 109 ユーザのアクティビティ度合いを出力
+SELECT
+	u.id user_id,
+    count(*) num,
+    CASE
+		WHEN count(*) >= 5 then'A'
+		WHEN count(*) >= 2 then'B'
+		ELSE 'C'
+	END user_rank
+FROM
+	users u
+INNER JOIN
+	orders o
+    on u.id = o.user_id
+GROUP BY u.id
+ORDER BY user_rank
+;
+
+-- 112 演習:累計販売個数でランク分けしてランクが高い順に出力
+SELECT
+	p.id product_id,
+    p.name product_name,
+    sum(product_qty),
+    CASE
+		WHEN sum(product_qty) >= 20 then'A'
+		WHEN sum(product_qty) >= 10 then'B'
+		ELSE 'C'
+	END product_rank
+FROM
+	products p
+INNER JOIN
+	order_details od
+    on p.id = od.product_id
+GROUP BY p.id
+ORDER BY product_rank
+;
+
+-- 115 平均客単価を出力。少数第一位で出力
+SELECT
+	ROUND(AVG(amount), 0)
+FROM
+	orders
+;
+
+-- 116 月別平均客単価を出力。少数第一位で出力
+SELECT
+	date_format(order_time, '%Y%m') order_year_month,
+	ROUND(AVG(amount), 0) average_customer_spend
+FROM
+	orders
+GROUP BY
+	date_format(order_time, '%Y%m')
+ORDER BY order_year_month
+;
+
+-- 117 都道府県別平均客単価を出力
+SELECT
+	u.prefecture_id,
+	pr.name prefecture_name,
+	ROUND(AVG(amount), 0) average_customer
+FROM
+	users u
+INNER JOIN
+	prefectures pr
+	ON u.prefecture_id = pr.id
+INNER JOIN
+	orders o
+    ON u.id = o.user_id
+GROUP BY u.prefecture_id
+ORDER BY u.prefecture_id
+;
+
+-- 118 都道府県別月別平均客単価を出力 
+SELECT
+	u.prefecture_id prefecture_id,
+	pr.name prefecture_name,
+    date_format(order_time, '%Y%m') order_year_month,
+	ROUND(AVG(amount), 0) average_customer
+FROM
+	users u
+INNER JOIN
+	prefectures pr
+	ON u.prefecture_id = pr.id
+INNER JOIN
+	orders o
+    ON u.id = o.user_id
+GROUP BY prefecture_id, order_year_month
+ORDER BY prefecture_id, order_year_month
+;
+
+-- 120 新商品を一件追加してほしい
+INSERT INTO products (name, price) values ('新商品A', 1000);
+
+-- 122 新商品を三件追加してほしい
+INSERT INTO 
+    products (name, price) 
+values 
+    ('新商品C', 3000),
+    ('新商品D', 4000),
+    ('新商品E', 5000)
+;
+
+-- 123 全商品の値段を１０％OFFにする
+UPDATE products SET price = price * 0.9;
+
+-- 124 商品idが３の商品名を「SQL入門」に変更
+UPDATE products SET name  = 'SQL入門' WHERE id = 3;
+
+-- 125 累計販売数が１０を超えている商品のみ価格を５％増やす
+UPDATE 
+    products
+SET
+    price = price * 1.05
+WHERE 
+    id IN
+    (
+    SELECT
+        product_id
+    FROM
+        order_details
+    GROUP BY
+        product_id
+    HAVING
+        sum(product_qty) >= 10
+    )
+;
