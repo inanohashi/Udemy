@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main()) {
 	var x interface{}
 	fmt.Println(x)
 
