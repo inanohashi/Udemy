@@ -32,7 +32,7 @@ func main() {
 		fmt.Println("---------")
 	*/
 
-	//SlicrStable
+	//SliceStable
 	/*
 		sort.SliceStable(el, func(i, j int) bool { return el[i].Name < el[j].Name })
 		sort.SliceStable(el, func(i, j int) bool { return el[i].Value < el[j].Value })
