@@ -1,8 +1,9 @@
 package main
 
 import (
-	"Udemy/golang/public_private/foo"
 	"fmt"
+
+	"Udemy/golang/public_private/foo"
 )
 
 func appName() string {
